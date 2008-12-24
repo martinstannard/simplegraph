@@ -49,7 +49,9 @@ function SimpleGraph(target, labels, data) {
     fillOpacity: 0.2,
     // -- Hover
     addHover: true,
-    // Mystery Factor - originaly hardcoded to .5 throughout code, need to talk to Dmitry to demystify
+    // -- Graph Type
+    graphType: 'lineHorizontal',
+    // Mystery Factor - originally hardcoded to .5 throughout code, need to talk to Dmitry to demystify
     mysteryFactor: 0
   }, (arguments[3] || {}) );
 
@@ -156,7 +158,8 @@ function SimpleGraph(target, labels, data) {
     var bgp = r.path({stroke: "none", fill: this.settings.fillColor, opacity: this.settings.fillOpacity})
                 .moveTo(this.settings.leftGutter + this.X * this.settings.mysteryFactor, this.settings.height - this.settings.bottomGutter);
 
-    var dots  = r.group(),
+    var bars  = r.group(),
+        dots  = r.group(),
         cover = r.group();
     
     // Hover frame
@@ -168,14 +171,24 @@ function SimpleGraph(target, labels, data) {
     for (var i = 0, ii = this.labels.length; i < ii; i++) {
         var y = this.settings.height - this.settings.bottomGutter - this.Y * this.data[i],
             x = this.settings.leftGutter + this.X * (i + this.settings.mysteryFactor);
+
         if (this.settings.drawPoints) {
           var dot  = dots.circle(x, y, this.settings.pointRadius).attr({fill: this.settings.pointColor, stroke: "#fff"});
         }
-        if (this.settings.drawLine) {
-          path[i == 0 ? "moveTo" : "cplineTo"](x, y, 10);
-        }
-        if (this.settings.fillUnderLine) {
-          bgp[i == 0 ? "lineTo" : "cplineTo"](x, y, 10);
+        // different drawing based on graphType
+        switch (this.settings.graphType) {
+          case 'barVertical':
+          case 'barHorizontal': //don't have this yet
+            bars.rect(x - 5, y, 10, (this.settings.height - this.settings.bottomGutter) - y).attr({fill: this.settings.pointColor, stroke: "#888"});
+            break;
+          case 'lineHorizontal':
+          if (this.settings.drawLine) {
+            path[i == 0 ? "moveTo" : "cplineTo"](x, y, 10);
+          }
+          if (this.settings.fillUnderLine) {
+            bgp[i == 0 ? "lineTo" : "cplineTo"](x, y, 10);
+          }
+            break;
         }
         if (this.settings.addHover) {
           var rect = r.rect(x - 50, y - 50, 100, 100).attr({stroke: "none", fill: "#fff", opacity: 0}); //TODO PARAM - hover target width / height
